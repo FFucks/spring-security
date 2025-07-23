@@ -1,8 +1,10 @@
 package com.ffucks.controllers;
 
 import com.ffucks.dtos.AuthenticationDTO;
+import com.ffucks.dtos.LoginResponseDTO;
 import com.ffucks.dtos.RegisterDTO;
 import com.ffucks.entities.Users;
+import com.ffucks.services.TokenService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,11 +27,17 @@ public class AuthenticationController {
     @Autowired
     private UserRepository repository;
 
+    @Autowired
+    private TokenService tokenService;
+
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO authentication) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(authentication.login(), authentication.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
-        return ResponseEntity.ok().build();
+
+        var token = tokenService.generateToken((Users) auth.getPrincipal());
+
+        return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 
     @PostMapping("/register")
